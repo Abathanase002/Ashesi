@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
@@ -36,9 +35,11 @@ const Bookings = () => {
     
     let userSpecificBookings: Booking[];
     
-    if (currentUser.userType === 'Customer') {
+    if (currentUser.UserType === 'Customer') {
       // Customers see only their own bookings
-      userSpecificBookings = mockBookings.filter(booking => booking.customerId === currentUser.id);
+      userSpecificBookings = mockBookings.filter(
+        booking => booking.CustomerID === (currentUser as Customer).CustomerID
+      );
     } else {
       // Employees see all bookings
       userSpecificBookings = [...mockBookings];
@@ -54,17 +55,17 @@ const Bookings = () => {
     
     // Apply status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(booking => booking.status === statusFilter);
+      filtered = filtered.filter(booking => booking.Status === statusFilter);
     }
     
     // Apply search term
     if (searchTerm.trim()) {
       const lowerCaseTerm = searchTerm.toLowerCase();
       filtered = filtered.filter(booking => 
-        booking.id.toLowerCase().includes(lowerCaseTerm) ||
-        booking.flight?.id.toLowerCase().includes(lowerCaseTerm) ||
-        booking.customer?.firstName.toLowerCase().includes(lowerCaseTerm) ||
-        booking.customer?.lastName.toLowerCase().includes(lowerCaseTerm)
+        booking.BookingID.toLowerCase().includes(lowerCaseTerm) ||
+        (booking.Flight?.flightNumber?.toLowerCase().includes(lowerCaseTerm)) ||
+        (booking.Customer?.FirstName.toLowerCase().includes(lowerCaseTerm)) ||
+        (booking.Customer?.LastName.toLowerCase().includes(lowerCaseTerm))
       );
     }
     
@@ -82,7 +83,7 @@ const Bookings = () => {
       <main className="flex-grow py-8 bg-gray-50">
         <div className="container mx-auto px-4">
           <h1 className="text-2xl font-bold mb-6">
-            {currentUser.userType === 'Customer' ? 'My Bookings' : 'All Bookings'}
+            {currentUser.UserType === 'Customer' ? 'My Bookings' : 'All Bookings'}
           </h1>
           
           {/* Filters */}
@@ -123,7 +124,11 @@ const Bookings = () => {
           {filteredBookings.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filteredBookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
+                <BookingCard 
+                  key={booking.BookingID} 
+                  booking={booking} 
+                  isEmployee={currentUser.UserType === 'Employee'}
+                />
               ))}
             </div>
           ) : (
@@ -136,7 +141,7 @@ const Bookings = () => {
                 <p className="text-gray-500 mb-6 max-w-md">
                   {searchTerm || statusFilter !== 'all' 
                     ? "No bookings match your current filters. Try adjusting your search criteria."
-                    : currentUser.userType === 'Customer'
+                    : currentUser.UserType === 'Customer'
                       ? "You don't have any bookings yet. Start by booking a flight."
                       : "There are no bookings in the system yet."
                   }
